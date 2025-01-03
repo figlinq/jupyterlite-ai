@@ -110,7 +110,9 @@ const aiProviderPlugin: JupyterFrontEndPlugin<IAIProvider> = {
       .then(settings => {
         const updateProvider = () => {
           const provider = settings.get('provider').composite as string;
-          aiProvider.setModels(provider, settings.composite);
+          const useExternalAPI = settings.get('useExternalAPI').composite as boolean;
+          const externalAPIEndpoint = settings.get('externalAPIEndpoint').composite as string;
+          aiProvider.setModels(provider, { ...settings.composite, useExternalAPI, externalAPIEndpoint });
         };
 
         settings.changed.connect(() => updateProvider());

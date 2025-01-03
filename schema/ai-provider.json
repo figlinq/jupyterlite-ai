@@ -15,6 +15,18 @@
       "title": "The Codestral API key",
       "description": "The API key to use for Codestral",
       "default": ""
+    },
+    "useExternalAPI": {
+      "type": "boolean",
+      "title": "Use External API",
+      "description": "Whether to use an external API endpoint for Mistral completions",
+      "default": false
+    },
+    "externalAPIEndpoint": {
+      "type": "string",
+      "title": "External API Endpoint",
+      "description": "The external API endpoint URL for Mistral completions",
+      "default": ""
     }
   },
   "additionalProperties": false
