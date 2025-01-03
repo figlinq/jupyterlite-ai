@@ -21,42 +21,71 @@ const REQUEST_TIMEOUT = 3000;
 
 export class CodestralCompleter implements IBaseCompleter {
   constructor(options: BaseCompleter.IOptions) {
-    // this._requestCompletion = options.requestCompletion;
+    this._useExternalAPI = options.settings.useExternalAPI as boolean;
+    this._externalAPIEndpoint = options.settings.externalAPIEndpoint as string;
     this._mistralProvider = new MistralAI({ ...options.settings });
     this._throttler = new Throttler(
       async (data: CompletionRequest) => {
         const invokedData = data;
 
-        // Request completion.
-        const request = this._mistralProvider.completionWithRetry(
-          data,
-          {},
-          false
-        );
-        const timeoutPromise = new Promise<null>(resolve => {
-          return setTimeout(() => resolve(null), REQUEST_TIMEOUT);
-        });
+        if (this._useExternalAPI && this._externalAPIEndpoint) {
+          try {
+            const response = await fetch(this._externalAPIEndpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+            });
 
-        // Fetch again if the request is too long or if the prompt has changed.
-        const response = await Promise.race([request, timeoutPromise]);
-        if (
-          response === null ||
-          invokedData.prompt !== this._currentData?.prompt
-        ) {
+            if (!response.ok) {
+              throw new Error('Failed to fetch from external API');
+            }
+
+            const result = await response.json();
+            const items = result.choices.map((choice: any) => {
+              return { insertText: choice.message.content as string };
+            });
+
+            return {
+              items
+            };
+          } catch (error) {
+            console.error('Error fetching completions from external API', error);
+            return { items: [] };
+          }
+        } else {
+          // Request completion.
+          const request = this._mistralProvider.completionWithRetry(
+            data,
+            {},
+            false
+          );
+          const timeoutPromise = new Promise<null>(resolve => {
+            return setTimeout(() => resolve(null), REQUEST_TIMEOUT);
+          });
+
+          // Fetch again if the request is too long or if the prompt has changed.
+          const response = await Promise.race([request, timeoutPromise]);
+          if (
+            response === null ||
+            invokedData.prompt !== this._currentData?.prompt
+          ) {
+            return {
+              items: [],
+              fetchAgain: true
+            };
+          }
+
+          // Extract results of completion request.
+          const items = response.choices.map((choice: any) => {
+            return { insertText: choice.message.content as string };
+          });
+
           return {
-            items: [],
-            fetchAgain: true
+            items
           };
         }
-
-        // Extract results of completion request.
-        const items = response.choices.map((choice: any) => {
-          return { insertText: choice.message.content as string };
-        });
-
-        return {
-          items
-        };
       },
       { limit: INTERVAL }
     );
@@ -82,12 +111,7 @@ export class CodestralCompleter implements IBaseCompleter {
       prompt,
       suffix,
       model: this._mistralProvider.model,
-      // temperature: 0,
-      // top_p: 1,
-      // max_tokens: 1024,
-      // min_tokens: 0,
       stream: false,
-      // random_seed: 1337,
       stop: []
     };
 
@@ -110,4 +134,6 @@ export class CodestralCompleter implements IBaseCompleter {
   private _throttler: Throttler;
   private _mistralProvider: MistralAI;
   private _currentData: CompletionRequest | null = null;
+  private _useExternalAPI: boolean;
+  private _externalAPIEndpoint: string;
 }
