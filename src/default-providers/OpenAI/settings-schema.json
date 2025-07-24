@@ -622,6 +622,11 @@
     "apiKey": {
       "type": "string",
       "description": "API key to use when making requests to OpenAI. Defaults to the value of `OPENAI_API_KEY` environment variable."
+    },
+    "baseUrl": {
+      "type": "string",
+      "description": "Base URL to use for OpenAI API requests. Useful for local or proxied endpoints that inject an API key.",
+      "default": ""
     }
   },
   "definitions": {}

@@ -10,7 +10,18 @@ import { BaseCompleter } from '../../base-completer';
 export class OpenAICompleter extends BaseCompleter {
   constructor(options: BaseCompleter.IOptions) {
     super(options);
-    this._completer = new ChatOpenAI({ ...options.settings });
+    const settings = { ...options.settings } as any;
+    if (settings.baseUrl) {
+      // Route baseUrl into the OpenAI client configuration
+      settings.configuration = {
+        ...(settings.configuration ?? {}),
+        baseURL: settings.baseUrl
+      };
+      // Ensure apiKey is defined so the env-var check is bypassed
+      settings.apiKey = settings.apiKey ?? '';
+      delete settings.baseUrl;
+    }
+    this._completer = new ChatOpenAI(settings);
   }
 
   async fetch(

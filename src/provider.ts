@@ -322,10 +322,19 @@ export class AIProviderRegistry implements IAIProviderRegistry {
 
     if (currentProvider?.chat !== undefined) {
       try {
+        // Map baseUrl to ChatOpenAI's openAIApiBase for OpenAI provider
+        let chatSettings = { ...fullSettings } as any;
+        if (provider === 'OpenAI' && chatSettings.baseUrl) {
+          const { baseUrl, ...rest } = chatSettings;
+          // Map baseUrl into the OpenAI client configuration
+          chatSettings = {
+            ...rest,
+            configuration: { ...(rest.configuration ?? {}), baseURL: baseUrl },
+            apiKey: rest.apiKey ?? ''
+          } as any;
+        }
         Private.setChatModel(
-          new currentProvider.chat({
-            ...fullSettings
-          })
+          new currentProvider.chat(chatSettings)
         );
       } catch (e: any) {
         this.chatError = e.message;

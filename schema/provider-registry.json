@@ -21,7 +21,16 @@
       "type": "object",
       "title": "AI providers",
       "description": "The AI providers configuration",
-      "default": {},
+      "default": {
+        "chat": {
+          "provider": "OpenAI",
+          "baseUrl": "/v2/completions"
+        },
+        "completer": {
+          "provider": "OpenAI",
+          "baseUrl": "/v2/completions"
+        }
+      },
       "additionalProperties": true
     }
   },

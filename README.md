@@ -62,6 +62,18 @@ The process is different for each provider, so you may refer to their documentat
 
 ![Screenshot showing how to use the chat](./img/3-usage.png)
 
+## Using OpenAI
+
+If you have a local OpenAI-compatible API endpoint that injects your API key (for example, a proxy server),
+you can configure the provider to use it without requiring each user to provide their own API key.
+
+1. Open the JupyterLab **Settings** → **Advanced Settings Editor** → **AI Providers**.
+2. Select the `OpenAI` provider.
+3. In the **Base URL** field, enter your local endpoint URL (e.g., `http://localhost:8000/v1`).
+4. Optionally leave the **API Key** field empty if your endpoint handles authentication.
+5. Save and close the settings editor.
+6. Open the chat or use the inline completer.
+
 ## Using ChromeAI
 
 > [!WARNING]
